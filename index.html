@@ -5,14 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Manager</title>
     <style>
+        /* General styles for the body */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
         }
+        /* Styles for the heading */
         h2 {
             text-align: center;
             color: #DE3163;
         }
+        /* Styles for the calendar table */
         table {
             border-collapse: collapse;
             margin: 20px auto;
@@ -46,6 +49,7 @@
         td .task:hover {
             background-color: #1f77b4;
         }
+        /* Styles for forms */
         .task-form, .auth-form {
             width: 50%;
             margin: 20px auto;
@@ -74,6 +78,7 @@
         .task-form button:hover, .auth-form button:hover {
             background-color: #C2185B;
         }
+        /* Styles for navigation links */
         .nav {
             width: 80%;
             margin: 20px auto;
@@ -155,21 +160,23 @@
     </table>
 
     <script>
-        let token = '';
+        let token = ''; // Variable to store the authentication token
 
-        // Show the appropriate form
+        // Show the login form and hide other forms when "Login" link is clicked
         document.getElementById('loginLink').addEventListener('click', () => {
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('registerForm').style.display = 'none';
             document.querySelector('.task-form').style.display = 'none';
         });
 
+        // Show the registration form and hide other forms when "Register" link is clicked
         document.getElementById('registerLink').addEventListener('click', () => {
             document.getElementById('registerForm').style.display = 'block';
             document.getElementById('loginForm').style.display = 'none';
             document.querySelector('.task-form').style.display = 'none';
         });
 
+        // Handle logout: clear token, show login/register links, and hide task form
         document.getElementById('logoutLink').addEventListener('click', () => {
             token = '';
             document.getElementById('logoutLink').style.display = 'none';
@@ -180,12 +187,13 @@
             loadTasks(); // Reload tasks after logout
         });
 
-        // Login functionality
+        // Handle login functionality
         document.getElementById('loginBtn').addEventListener('click', async () => {
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
 
             try {
+                // Send login request
                 const response = await fetch('/login', {
                     method: 'POST',
                     headers: {
@@ -195,7 +203,7 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    token = data.token;
+                    token = data.token; // Store token on successful login
                     alert('Login successful');
                     document.getElementById('loginForm').style.display = 'none';
                     document.getElementById('logoutLink').style.display = 'block';
@@ -210,12 +218,13 @@
             }
         });
 
-        // Register functionality
+        // Handle registration functionality
         document.getElementById('registerBtn').addEventListener('click', async () => {
             const username = document.getElementById('registerUsername').value;
             const password = document.getElementById('registerPassword').value;
 
             try {
+                // Send registration request
                 const response = await fetch('/register', {
                     method: 'POST',
                     headers: {
@@ -237,7 +246,7 @@
             }
         });
 
-        // Add Task functionality
+        // Handle task addition functionality
         document.getElementById('addTaskBtn').addEventListener('click', async () => {
             const name = document.getElementById('taskName').value;
             const date = document.getElementById('taskDate').value;
@@ -249,11 +258,12 @@
             }
 
             try {
+                // Send request to add new task
                 const response = await fetch('/tasks', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}` // Include the token in the authorization header
                     },
                     body: JSON.stringify({ name, date, time })
                 });
@@ -269,17 +279,17 @@
             }
         });
 
-        // Load tasks
+        // Load tasks from the server and update the calendar
         async function loadTasks() {
             try {
                 const response = await fetch('/tasks', {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}` // Include the token in the authorization header
                     }
                 });
                 if (response.ok) {
                     const tasks = await response.json();
-                    updateCalendar(tasks);
+                    updateCalendar(tasks); // Update calendar with the loaded tasks
                 } else {
                     console.error('Error loading tasks:', response.statusText);
                 }
@@ -288,11 +298,12 @@
             }
         }
 
-        // Update calendar with tasks
+        // Update the calendar table with tasks
         function updateCalendar(tasks) {
             const calendarBody = document.getElementById('calendarBody');
             calendarBody.innerHTML = ''; // Clear existing cells
 
+            // Create table rows and cells for each day of the month
             for (let i = 1; i <= 31; i++) {
                 const tr = document.createElement('tr');
                 for (let j = 0; j < 7; j++) {
@@ -300,6 +311,7 @@
                     td.id = `day-${i}`;
                     td.textContent = i;
 
+                    // Add tasks to the corresponding day cell
                     tasks.forEach(task => {
                         if (parseInt(task.date) === i) {
                             const taskElement = document.createElement('span');
@@ -307,12 +319,13 @@
                             taskElement.textContent = `${task.name} @ ${task.time}`;
                             taskElement.setAttribute('data-id', task._id);
 
+                            // Add click event to delete task
                             taskElement.addEventListener('click', async function() {
                                 try {
                                     await fetch(`/tasks/${task._id}`, {
                                         method: 'DELETE',
                                         headers: {
-                                            'Authorization': `Bearer ${token}`
+                                            'Authorization': `Bearer ${token}` // Include the token in the authorization header
                                         }
                                     });
                                     alert('Task deleted');
