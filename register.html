@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register - TaskFlow Manager</title>
+  <!-- Link to external stylesheet for styling the page -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Navigation Bar with links to other pages -->
   <nav>
     <a href="index.html">Home</a>
     <a href="about.html">About</a>
@@ -14,40 +16,49 @@
     <a href="register.html">Register</a>
   </nav>
 
+  <!-- Container for the registration form -->
   <div class="container">
     <h1>Register</h1>
+    <!-- Registration Form -->
     <form id="register-form">
+      <!-- Username Input Field -->
       <input type="text" id="username" placeholder="Username" required>
+      <!-- Password Input Field -->
       <input type="password" id="password" placeholder="Password" required>
+      <!-- Register Button -->
       <button type="submit">Register</button>
     </form>
   </div>
 
   <script>
+    // Add an event listener to the registration form for the 'submit' event
     document.getElementById('register-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
+      e.preventDefault(); // Prevent the default form submission behavior
       
+      // Retrieve the username and password values from the input fields
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       
       try {
+        // Send a POST request to the register endpoint with username and password
         const response = await fetch('/users/register', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json' // Specify that the request body is JSON
           },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ username, password }) // Convert the credentials to JSON format
         });
 
+        // Check if the response is successful (status code 200-299)
         if (response.ok) {
-          alert('Registration successful');
-          window.location.href = 'login.html'; // Redirect to login page
+          alert('Registration successful'); // Notify the user of successful registration
+          window.location.href = 'login.html'; // Redirect to the login page
         } else {
-          alert('Registration failed');
+          alert('Registration failed'); // Notify the user if registration was not successful
         }
       } catch (error) {
-        console.error('Error:', error);
-        alert('Error registering user');
+        console.error('Error:', error); // Log any errors to the console
+        alert('Error registering user'); // Notify the user of an error during registration
       }
     });
   </script>
