@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        h2 {
+            text-align: center;
+            color: #DE3163;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 20px auto;
+            background-color: white;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            width: 100px;
+            height: 100px;
+        }
+        th {
+            color: #DE3163;
+            background-color: #D5F5E3;
+        }
+        td {
+            font-weight: bold;
+            position: relative;
+        }
+        td .task {
+            display: block;
+            background-color: #3498db;
+            color: white;
+            padding: 2px;
+            border-radius: 3px;
+            margin-top: 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        td .task:hover {
+            background-color: #1f77b4;
+        }
+        .task-form, .auth-form {
+            width: 50%;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .task-form input, .task-form button, .task-form select, .auth-form input, .auth-form button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+        .task-form input, .task-form select, .auth-form input {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .task-form button, .auth-form button {
+            background-color: #DE3163;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .task-form button:hover, .auth-form button:hover {
+            background-color: #C2185B;
+        }
+        .nav {
+            width: 80%;
+            margin: 20px auto;
+            text-align: center;
+        }
+        .nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            color: #DE3163;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Links -->
+    <div class="nav">
+        <a href="#" id="loginLink">Login</a>
+        <a href="#" id="registerLink">Register</a>
+        <a href="#" id="logoutLink" style="display:none;">Logout</a>
+    </div>
+
+    <!-- Login Form -->
+    <div class="auth-form" id="loginForm" style="display:none;">
+        <h3>Login</h3>
+        <label for="loginUsername">Username:</label>
+        <input type="text" id="loginUsername">
+        <label for="loginPassword">Password:</label>
+        <input type="password" id="loginPassword">
+        <button id="loginBtn">Login</button>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="auth-form" id="registerForm" style="display:none;">
+        <h3>Register</h3>
+        <label for="registerUsername">Username:</label>
+        <input type="text" id="registerUsername">
+        <label for="registerPassword">Password:</label>
+        <input type="password" id="registerPassword">
+        <button id="registerBtn">Register</button>
+    </div>
+
+    <h2>August, 2023</h2>
+
+    <!-- Task Form -->
+    <div class="task-form">
+        <h3>Add a Task</h3>
+        <label for="taskName">Task Name:</label>
+        <input type="text" id="taskName" placeholder="Enter task">
+
+        <label for="taskDate">Select Date:</label>
+        <input type="number" id="taskDate" min="1" max="31" placeholder="Enter day of the month (1-31)">
+
+        <label for="taskTime">Select Time:</label>
+        <input type="time" id="taskTime">
+
+        <button id="addTaskBtn">Add Task</button>
+    </div>
+
+    <!-- Calendar Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Sun</th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+                <th>Sat</th>
+            </tr>
+        </thead>
+        <tbody id="calendarBody">
+            <!-- Days will be dynamically added here -->
+        </tbody>
+    </table>
+
+    <script>
+        let token = '';
+
+        // Show the appropriate form
+        document.getElementById('loginLink').addEventListener('click', () => {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.querySelector('.task-form').style.display = 'none';
+        });
+
+        document.getElementById('registerLink').addEventListener('click', () => {
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('loginForm').style.display = 'none';
+            document.querySelector('.task-form').style.display = 'none';
+        });
+
+        document.getElementById('logoutLink').addEventListener('click', () => {
+            token = '';
+            document.getElementById('logoutLink').style.display = 'none';
+            document.getElementById('loginLink').style.display = 'block';
+            document.getElementById('registerLink').style.display = 'block';
+            document.querySelector('.task-form').style.display = 'none';
+            document.querySelector('.auth-form').style.display = 'block';
+            loadTasks(); // Reload tasks after logout
+        });
+
+        // Login functionality
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    token = data.token;
+                    alert('Login successful');
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('logoutLink').style.display = 'block';
+                    document.querySelector('.task-form').style.display = 'block';
+                    loadTasks(); // Load tasks on successful login
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Login failed');
+            }
+        });
+
+        // Register functionality
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                if (response.ok) {
+                    alert('Registration successful');
+                    document.getElementById('registerForm').style.display = 'none';
+                    document.getElementById('loginForm').style.display = 'block';
+                } else {
+                    const data = await response.json();
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Registration failed');
+            }
+        });
+
+        // Add Task functionality
+        document.getElementById('addTaskBtn').addEventListener('click', async () => {
+            const name = document.getElementById('taskName').value;
+            const date = document.getElementById('taskDate').value;
+            const time = document.getElementById('taskTime').value;
+
+            if (!name || !date || !time) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name, date, time })
+                });
+                if (response.ok) {
+                    alert('Task added successfully');
+                    loadTasks(); // Reload tasks after adding a new one
+                } else {
+                    alert('Failed to add task');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error adding task');
+            }
+        });
+
+        // Load tasks
+        async function loadTasks() {
+            try {
+                const response = await fetch('/tasks', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (response.ok) {
+                    const tasks = await response.json();
+                    updateCalendar(tasks);
+                } else {
+                    console.error('Error loading tasks:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+            }
+        }
+
+        // Update calendar with tasks
+        function updateCalendar(tasks) {
+            const calendarBody = document.getElementById('calendarBody');
+            calendarBody.innerHTML = ''; // Clear existing cells
+
+            for (let i = 1; i <= 31; i++) {
+                const tr = document.createElement('tr');
+                for (let j = 0; j < 7; j++) {
+                    const td = document.createElement('td');
+                    td.id = `day-${i}`;
+                    td.textContent = i;
+
+                    tasks.forEach(task => {
+                        if (parseInt(task.date) === i) {
+                            const taskElement = document.createElement('span');
+                            taskElement.classList.add('task');
+                            taskElement.textContent = `${task.name} @ ${task.time}`;
+                            taskElement.setAttribute('data-id', task._id);
+
+                            taskElement.addEventListener('click', async function() {
+                                try {
+                                    await fetch(`/tasks/${task._id}`, {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'Authorization': `Bearer ${token}`
+                                        }
+                                    });
+                                    alert('Task deleted');
+                                    loadTasks(); // Reload tasks after deletion
+                                } catch (error) {
+                                    console.error('Error deleting task:', error);
+                                    alert('Error deleting task');
+                                }
+                            });
+
+                            td.appendChild(taskElement);
+                        }
+                    });
+
+                    tr.appendChild(td);
+                }
+                calendarBody.appendChild(tr);
+            }
+        }
+    </script>
+
+</body>
+</html>
