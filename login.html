@@ -6,36 +6,49 @@
     <title>Login</title>
 </head>
 <body>
+    <!-- Page Heading -->
     <h2>Login</h2>
+
+    <!-- Login Form -->
     <form id="login-form">
+        <!-- Username Input Field -->
         <input type="text" id="username" placeholder="Username" required>
+        
+        <!-- Password Input Field -->
         <input type="password" id="password" placeholder="Password" required>
+        
+        <!-- Login Button -->
         <button type="submit">Login</button>
     </form>
 
     <script>
+        // Add an event listener to the login form for the 'submit' event
         document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+            e.preventDefault(); // Prevent the default form submission behavior
+
+            // Retrieve username and password values from the input fields
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
             try {
+                // Send a POST request to the login endpoint with username and password
                 const response = await fetch('/users/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ username, password }) // Convert the credentials to JSON format
                 });
 
+                // Check if the response is successful (status code 200-299)
                 if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem('token', data.accessToken);
+                    const data = await response.json(); // Parse the JSON response
+                    localStorage.setItem('token', data.accessToken); // Store the access token in localStorage
                     window.location.href = 'index.html'; // Redirect to the calendar page (index.html)
                 } else {
-                    alert('Login failed');
+                    alert('Login failed'); // Alert the user if login was not successful
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Error logging in');
+                console.error('Error:', error); // Log any errors to the console
+                alert('Error logging in'); // Alert the user if there was an error during the login process
             }
         });
     </script>
